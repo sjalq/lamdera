@@ -1,9 +1,12 @@
 module Backend exposing (..)
 
+import Api.User exposing (..)
 import Bridge exposing (..)
 import Dict
 import Html
 import Lamdera exposing (ClientId, SessionId)
+import Task
+import Time
 import Types exposing (BackendModel, BackendMsg(..), ToFrontend(..))
 
 
@@ -15,7 +18,7 @@ app =
     Lamdera.backend
         { init = init
         , update = update
-        , updateFromFrontend = updateFromFrontend
+        , updateFromFrontend = updateFromFrontendTimestamped
         , subscriptions = \m -> Lamdera.onConnect OnConnect
         }
 
@@ -35,9 +38,19 @@ update msg model =
         OnConnect sid cid ->
             ( model, Lamdera.sendToFrontend cid <| NewSmashedLikes model.smashedLikes )
 
+        DoWithTime sid cid toBackendMsg time ->
+            updateFromFrontend sid cid time toBackendMsg model
 
-updateFromFrontend : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
-updateFromFrontend sessionId clientId msg model =
+
+updateFromFrontendTimestamped : SessionId -> ClientId -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
+updateFromFrontendTimestamped sessionId clientId msg model =
+    ( model 
+    , Time.now
+        |> Task.perform (\t -> DoWithTime sessionId clientId msg t))
+
+
+updateFromFrontend : SessionId -> ClientId -> Time.Posix -> ToBackend -> Model -> ( Model, Cmd BackendMsg )
+updateFromFrontend sessionId clientId time msg model =
     case msg of
         SmashedLikeButton ->
             let
@@ -46,8 +59,27 @@ updateFromFrontend sessionId clientId msg model =
             in
             ( { model | smashedLikes = newSmashedLikes }, Lamdera.broadcast <| NewSmashedLikes newSmashedLikes )
 
-        AttemptLogin _ _ ->
-            Debug.todo "branch 'AttemptLogin _ _' not implemented"
+        AttemptLogin email password ->
+            let
+                attemptingUser =
+                    Dict.get email model.users
 
-        AttemptUserRegistration _ _ ->
+                passwordMatches =
+                    attemptingUser |> Maybe.map (\u -> hashPassword password u.salt == u.passwordHash)
+
+                newUsers =
+                    case ( attemptingUser, passwordMatches ) of
+                        ( Just _, Just True ) ->
+                            model.users
+
+                        _ ->
+                            Dict.insert email password model.users
+            in
+            ( { model
+                | users = Dict.insert email password model.users
+              }
+            , Cmd.none
+            )
+
+        AttemptUserRegistration email password ->
             Debug.todo "branch 'AttemptUserRegistration _ _' not implemented"

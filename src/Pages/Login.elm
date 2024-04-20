@@ -124,6 +124,27 @@ view model =
     }
 
 
+buttonStyle : List (Attribute msg)
+buttonStyle =
+    [ Background.color <| rgb 0.25 0.5 0.75
+    , Font.color <| rgb 1 1 1
+    , Border.rounded 5
+    , padding 10
+    , centerX
+    ]
+
+
+promptBorderStyle : List (Attribute msg)
+promptBorderStyle =
+    [ Border.rounded 5
+    , Border.width 1
+    , Border.color <| rgb 0.25 0.5 0.75
+    , padding 10
+    , spacing 10
+    , centerX
+    ]
+
+
 viewUserManagement model =
     let
         emailInput =
@@ -167,11 +188,15 @@ viewUserManagement model =
                 []
 
             else
-                [ text "Passwords do not match" ]
+                [ column [ Font.color <| rgb 1 0 0, Font.size 12, spacing 5 ]
+                    [ text
+                        "Passwords do not match"
+                    ]
+                ]
 
-        button =
+        submitButton =
             Input.button
-                [ Background.color <| rgb 0.25 0.5 0.75, Font.color <| rgb 1 1 1 ]
+                buttonStyle
                 { onPress = Just Submit
                 , label =
                     case model.mode of
@@ -181,9 +206,40 @@ viewUserManagement model =
                         Login ->
                             text "Login"
                 }
+
+        modeSelector =
+            let
+                bgColor mode =
+                    if model.mode == mode then
+                        [ Background.color <| rgb 1 1 1
+                        , Font.color <| rgb 0.25 0.5 0.75
+                        ]
+
+                    else
+                        [ Background.color <| rgb 0.25 0.5 0.75
+                        , Font.color <| rgb 1 1 1
+                        ]
+            in
+            row [ spacing 10, centerX ]
+                [ Input.button
+                    (buttonStyle
+                        ++ bgColor Register
+                    )
+                    { onPress = Just <| ChangeMode Login
+                    , label = text "Login"
+                    }
+                , Input.button
+                    (buttonStyle
+                        ++ bgColor Login
+                    )
+                    { onPress = Just <| ChangeMode Register
+                    , label = text "Register"
+                    }
+                ]
     in
-    column [ spacing 20, padding 20, width fill ]
-        (emailInput
+    column promptBorderStyle
+        (modeSelector
+            :: emailInput
             :: passwordInput
             :: (if model.mode == Register then
                     [ confirmPasswordInput ]
@@ -192,5 +248,5 @@ viewUserManagement model =
                 else
                     []
                )
-            ++ [ button ]
+            ++ [ submitButton ]
         )

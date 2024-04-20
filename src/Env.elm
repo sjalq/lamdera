@@ -6,3 +6,5 @@ module Env exposing (..)
 
 dummyConfigItem =
   ""
+
+adminUsers = "admin@place.com"

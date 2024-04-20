@@ -1,8 +1,8 @@
 module Bridge exposing (..)
-import Api.User exposing (User)
+import Api.User exposing (..)
 
 
 type ToBackend
     = SmashedLikeButton
-    | AttemptLogin String String
-    | AttemptUserRegistration String String
+    | AttemptLogin Email Password
+    | AttemptUserRegistration Email Password

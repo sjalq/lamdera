@@ -8,6 +8,7 @@ import Main as ElmLand
 import Url exposing (Url)
 import Api.User exposing (User, Email)
 import Dict exposing (Dict)
+import Time
 
 type alias FrontendModel =
     ElmLand.Model
@@ -29,6 +30,7 @@ type alias ToBackend =
 
 type BackendMsg
     = OnConnect SessionId ClientId
+    | DoWithTime SessionId ClientId ToBackend Time.Posix
 
 
 type ToFrontend
