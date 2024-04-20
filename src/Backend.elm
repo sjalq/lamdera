@@ -1,6 +1,7 @@
 module Backend exposing (..)
 
 import Bridge exposing (..)
+import Dict
 import Html
 import Lamdera exposing (ClientId, SessionId)
 import Types exposing (BackendModel, BackendMsg(..), ToFrontend(..))
@@ -21,7 +22,9 @@ app =
 
 init : ( Model, Cmd BackendMsg )
 init =
-    ( { smashedLikes = 0 }
+    ( { smashedLikes = 0
+      , users = Dict.empty
+      }
     , Cmd.none
     )
 
@@ -42,3 +45,9 @@ updateFromFrontend sessionId clientId msg model =
                     model.smashedLikes + 1
             in
             ( { model | smashedLikes = newSmashedLikes }, Lamdera.broadcast <| NewSmashedLikes newSmashedLikes )
+
+        AttemptLogin _ _ ->
+            Debug.todo "branch 'AttemptLogin _ _' not implemented"
+
+        AttemptUserRegistration _ _ ->
+            Debug.todo "branch 'AttemptUserRegistration _ _' not implemented"
